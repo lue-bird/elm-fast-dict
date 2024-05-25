@@ -4,7 +4,7 @@ module FastSet exposing
     , isEmpty, member, size, equals
     , getMin, getMax
     , popMin, popMax
-    , toList, fromList
+    , toList, fromList, fromListMap
     , fromDictKeys
     , map, foldl, foldr, filter, partition
     , union, intersect, diff
@@ -43,7 +43,8 @@ Insert, remove, and query operations all take _O(log n)_ time.
 
 # Lists and dictionaries
 
-@docs toList, fromList
+@docs toList, fromList, fromListMap
+
 @docs fromDictKeys
 
 
@@ -242,7 +243,17 @@ toList (Set dict) =
 -}
 fromList : List comparable -> Set comparable
 fromList list =
-    List.foldl insert empty list
+    fromListMap identity list
+
+
+{-| Convert an list into a set by providing a function to map from an element to a key to insert.
+
+It's equivalent to `FastSet.fromList (List.map toKey list)` but faster.
+
+-}
+fromListMap : (element -> comparable) -> List element -> Set comparable
+fromListMap elementToKey list =
+    Set (FastDict.fromListMap (\element -> ( elementToKey element, () )) list)
 
 
 {-| Convert a list into a set, removing any duplicates.

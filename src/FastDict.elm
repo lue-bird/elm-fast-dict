@@ -4,7 +4,7 @@ module FastDict exposing
     , isEmpty, member, get, size, equals
     , getMinKey, getMin, getMaxKey, getMax
     , popMin, popMax
-    , keys, values, toList, fromList
+    , keys, values, toList, fromList, fromListMap
     , map, foldl, foldr, filter, partition
     , union, unionWith, intersect, diff, merge
     , toCoreDict, fromCoreDict
@@ -42,7 +42,7 @@ Insert, remove, and query operations all take _O(log n)_ time.
 
 # Lists
 
-@docs keys, values, toList, fromList
+@docs keys, values, toList, fromList, fromListMap
 
 
 # Transform
@@ -1088,7 +1088,26 @@ toList dict =
 -}
 fromList : List ( comparable, v ) -> Dict comparable v
 fromList assocs =
-    List.foldl (\( key, value ) dict -> insert key value dict) empty assocs
+    fromListMap identity assocs
+
+
+{-| Convert an list into a dictionary by providing a function to map from an element to a key-value pair to insert.
+
+It's equivalent to `FastDict.fromList (List.map toEntry list)` but faster.
+
+-}
+fromListMap : (element -> ( comparable, v )) -> List element -> Dict comparable v
+fromListMap elementToEntry list =
+    List.foldl
+        (\element dict ->
+            let
+                ( key, value ) =
+                    elementToEntry element
+            in
+            insert key value dict
+        )
+        empty
+        list
 
 
 {-| Convert an association list into a dictionary.
